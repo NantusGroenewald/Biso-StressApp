@@ -123,4 +123,77 @@ body {
   text-decoration: none;
   color: #365E7D;
   font-size: 1.5em;
+}
+
+.full {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.full .register-container .login-box form input {
+  margin-bottom: 3.8rem;
+}
+.full .register-container .login-box form .fa-eye {
+  position: absolute;
+  top: 20%;
+  right: 4%;
+  cursor: pointer;
+  color: lightgray;
+}
+.full .register-container .topbutton {
+  margin-top: 1.5rem;
+}
+
+.stresslevel {
+  color: #365E7D;
+  text-align: center;
+  padding-top: 5.125rem;
+}
+.stresslevel h1 {
+  margin: 0;
+  font-size: 2.8em;
+  font-weight: 600;
+}
+.stresslevel img {
+  padding-top: 2.2rem;
+}
+.stresslevel h3 {
+  padding-top: 3rem;
+  margin: 0;
+  font-size: 1.8em;
+  font-weight: 400;
+}
+
+.activity {
+  color: #365E7D;
+  text-align: center;
+  padding-top: 4.5rem;
+}
+.activity h2 {
+  margin: 0;
+  font-size: 2em;
+  font-weight: 400;
+}
+.activity h3 {
+  padding-top: 1rem;
+  margin: 0;
+  font-size: 1.1em;
+  font-weight: 200;
+}
+
+nav {
+  background-color: #365E7D;
+  width: 100%;
+  height: 4.313rem;
+  position: fixed;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  place-items: center;
+}
+nav a {
+  padding: 1.5rem 1rem;
 }/*# sourceMappingURL=main.css.map */

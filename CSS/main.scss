@@ -47,7 +47,7 @@ body {
     
     a{
         text-decoration: none;
-    	color: white;
+        color: white;
         padding: 1rem 6.5rem;
     }
 }
@@ -58,6 +58,7 @@ body {
 .register{
     background-color: #4A80AA;
 }
+
 
 .login-box {
     display: flex;
@@ -115,5 +116,84 @@ body {
         text-decoration: none;
         color: #365E7D;
         font-size: 1.5em;
+    }
+}
+
+.full{
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    .register-container{
+        .login-box{
+            form{
+                input{
+                    margin-bottom: 3.8rem;
+                }
+                .fa-eye{
+                    position: absolute;
+                    top: 20%;
+                    right: 4%;
+                    cursor: pointer;
+                    color: lightgray;
+                }
+            }
+        }
+        .topbutton{
+            margin-top:1.5rem;
+        }
+    }
+}
+
+.stresslevel{
+    color: #365E7D;
+    text-align: center;
+    padding-top:5.125rem;
+    h1{
+        margin: 0;
+        font-size: 2.8em;
+        font-weight: 600;
+    }
+    img{
+        padding-top: 2.2rem;
+    }
+    h3{
+        padding-top: 3rem;
+        margin: 0;
+        font-size: 1.8em;
+        font-weight: 400;
+    }
+    
+}
+.activity{
+    color: #365E7D;
+    text-align: center;
+    padding-top:4.5rem;
+    h2{
+        margin: 0;
+        font-size: 2em;
+        font-weight: 400;
+    }
+    h3{
+        padding-top: 1rem;
+        margin: 0;
+        font-size: 1.1em;
+        font-weight: 200;
+    }
+}
+
+nav{
+    background-color:#365E7D ;
+    width: 100%;
+    height:4.313rem;
+    position: fixed;
+    bottom: 0;
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    place-items: center;
+    a{
+        padding: 1.5rem 1rem;
     }
 }
