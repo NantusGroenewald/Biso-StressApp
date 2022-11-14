@@ -250,3 +250,26 @@ nav{
         grid-row-gap:3.313rem ;
     }
 }
+
+header{
+    color: #365E7D;
+    text-align: center;
+    padding-top: 6.188rem;
+    padding-bottom: 5.688rem;
+    h1{
+        margin: 0;
+        font-size: 2em;
+        font-weight: 350;
+    }
+}
+
+.details-container{
+    padding-bottom:9.3rem ;
+    .login-box{
+        form{
+            input{
+                margin-bottom: 3rem;
+            }
+        }
+    }
+}
