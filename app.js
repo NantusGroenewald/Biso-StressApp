@@ -9,6 +9,7 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const { MongoClient } = require('mongodb');
+let alert = require('alert'); 
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri); 
@@ -43,11 +44,32 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     res.render('userlogin.ejs')
   })
   
-  app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-    successRedirect: '/home',
-    failureRedirect: '/login',
-    failureFlash: true
-  }))
+  // app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
+  //   successRedirect: '/home',
+  //   failureRedirect: '/login',
+  //   failureFlash: true
+  // }))
+
+  app.post('/login', checkNotAuthenticated, async (req, res) => {
+    console.log(await mongoLogin(req.body.email, req.body.password).catch(console.error));
+  //  switch (await mongoLogin(req.body.email, req.body.password).catch(console.error)) {
+  //   case 0:   
+  //       //TODO: Indicate that the user doesn't exist in the database
+  //       alert("User does not exist.");
+  //       res.redirect('/login');
+  //     break;
+  //   case 1:   
+  //       res.redirect('/home');
+  //     break;
+  //   case 2:   
+  //       //TODO: Indicate that the password was incorrect
+  //       alert("Incorrect password.");
+  //       res.redirect('/login');
+  //     break;  
+  //   default:
+  //     break;
+  //  }
+  })
 
   app.get('/home', checkAuthenticated, (req, res) => {
     res.render('home.ejs')
@@ -59,7 +81,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
 
   // app.post('/register', checkNotAuthenticated, async (req, res) => {
   //   try {
-  //     if (req.body.confirm-password == req.body.password) {
+  //     if (req.body.confirm_password == req.body.password) {
   //       const hashedPassword = await bcrypt.hash(req.body.password, 10)
   //       users.push({
   //         id: Date.now().toString(),
@@ -81,13 +103,18 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     try {
       if (req.body.password == req.body.confirm_password) {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        mongoAdd(getDateTime(), req.body.username, req.body.age, req.body.email, hashedPassword).catch(console.error);
+        if (mongoAdd(getDateTime(), req.body.username, req.body.age, req.body.email, hashedPassword).catch(console.error)) {
+        alert("The email already exists.");
+        res.redirect('/register');
+        }
+        else {
+          res.redirect('/login');
+        }
       } else {
         console.log('User could not be registered.');
       }
-      res.redirect('/login');
     } catch (error) {
-      res.redirect('/register');
+        res.redirect('/register');
     }
   })
 
@@ -111,6 +138,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   }
 
   async function mongoAdd(date, name, age, email, password){
+    let exists = false;
     try {
       await client.connect();
       await createUser(client, {
@@ -121,9 +149,47 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         password: password,
         stress: []
       });
-    } catch (error) {
-      //console.error(error);
+    } catch (e) {
       console.log('Email already registered.');
+      exists = true;
+    } finally {
+      await client.close();
+    }
+    return exists;
+  }
+
+  async function waitLogin(password, result){
+    if (result==null) 
+    {
+      console.log('User does not exist.');
+      return 0;
+    }
+    else
+    {
+        bcrypt.compare(password, result.password, async function (err, res){
+        if (res) {
+          console.log('Login successful.');
+          return 1;
+        }
+        else {
+          console.log('Incorrect password.');
+          return 2;
+        }
+      });
+    }
+  }
+
+  async function mongoLogin(email, password){
+    try {
+      await client.connect();
+      const result = await getUser(client, email);
+      let i = await waitLogin(password, result)
+      while (i!=undefined) {
+        return i;
+      }
+    } catch (e) {
+      console.log('User does not exist.');
+     // return 0;
     } finally {
       await client.close();
     }
@@ -139,9 +205,14 @@ app.get('/', checkNotAuthenticated, (req, res) => {
 
   // Add new user to the database
   async function createUser(client, newListing){
-    const result = await client.db("BISO_DB").collection("EmployeeStress").insertOne(newListing);
+    await client.db("BISO_DB").collection("EmployeeStress").insertOne(newListing);
   }
-  
+
+  // Get user data via email
+  async function getUser(client, listingId){
+    return await client.db("BISO_DB").collection("EmployeeStress").findOne({_id: listingId});
+  }
+
   //Run server on port 3000
   app.listen(3000);
 
