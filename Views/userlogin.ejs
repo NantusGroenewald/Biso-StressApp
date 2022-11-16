@@ -15,23 +15,26 @@
     </div>
     <div class="bottom">
         <div class="login-box">
-            <form>
+            <% if (messages.error) { %>
+                <%= messages.error %>
+            <% } %>
+            <form action="/login" method="POST">
                 <div class="user-box">
-                    <input type="text" name="username" id="username">
-                    <label>Username/Email:</label>
+                    <input type="text" name="email" id="email">
+                    <label>Email:</label>
                 </div>
                 <div class="user-box">
                     <input type="password" name="password" id="password">
                     <i class="fa-solid fa-eye" id="eye"></i>
                     <label>Password:</label>
                 </div>
+                <div class="topbutton">
+                    <button class="button login" type="submit">LOGIN</button>
+                </div>
             </form>
         </div>
-        <div class="topbutton">
-            <div class="button login"><a href="../HTML/userlogin.html">LOGIN</a> </div>
-        </div>
         <div class="link">
-            <a href="../HTML/userregister.html">Not yet registered?</a>
+            <a href="/register">Not yet registered?</a>
         </div>
     </div>
     <script>

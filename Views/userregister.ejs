@@ -13,7 +13,7 @@
     <div class="full">
         <div class="register-container">
         <div class="login-box">
-            <form>
+            <form action="/register" method="POST">
                 <div class="user-box">
                     <input type="text" name="username" id="username">
                     <label>Fullname:</label>
@@ -36,13 +36,13 @@
                     <i class="fa-solid fa-eye" id="eye"></i>
                     <label>Confirm password:</label>
                 </div>
+                <div class="topbutton">
+                    <button class="button login" type="submit">REGISTER</button>
+                </div>
             </form>
         </div>
-        <div class="topbutton">
-            <div class="button login"><a href="../HTML/userlogin.html">REGISTER</a> </div>
-        </div>
         <div class="link">
-            <a href="../HTML/userlogin.html">Already Registerd?</a>
+            <a href="/login">Already Registerd?</a>
         </div>
     </div>
     </div>
