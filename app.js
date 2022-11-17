@@ -12,8 +12,8 @@ const { MongoClient } = require('mongodb');
 let alert = require('alert'); 
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
-const client = new MongoClient(uri); 
 
+app.use('/favicon.ico', express.static('Images/favicon.ico'));
 const initializePassport = require('./passport-config')
 initializePassport(
     passport,
@@ -22,7 +22,7 @@ initializePassport(
 )
 
 app.use(express.static(__dirname + '/public')); 
-const users = []; 
+let users = []; 
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -52,7 +52,8 @@ app.get('/', checkNotAuthenticated, (req, res) => {
 
   let result;
   app.post('/login', checkNotAuthenticated, async (req, res) => {
-    result = await mongoLogin(req.body.email).catch(console.error)
+    result = await mongoLogin(req.body.email).catch(console.error);
+    users = result;
     if (result==null) 
     {
       console.log('User does not exist.');
@@ -63,7 +64,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         bcrypt.compare(req.body.password, result.password, async function (err, bcryptRes){
         if (bcryptRes) {
           console.log('Login successful.');
-          res.render('home.ejs')
+          res.render('home.ejs');
         }
         else {
           console.log('Incorrect password.');
@@ -73,8 +74,12 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     }
   })
 
-  app.get('/home', checkAuthenticated, (req, res) => {
+  app.get('/home', (req, res) => {
     res.render('home.ejs')
+  })
+
+  app.get('/useraccount', (req, res) => {
+    res.render('useraccount.ejs')
   })
   
   app.get('/register', checkNotAuthenticated, (req, res) => {
