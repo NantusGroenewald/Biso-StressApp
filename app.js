@@ -50,25 +50,27 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   //   failureFlash: true
   // }))
 
+  let result;
   app.post('/login', checkNotAuthenticated, async (req, res) => {
-    console.log(await mongoLogin(req.body.email, req.body.password).catch(console.error));
-  //  switch (await mongoLogin(req.body.email, req.body.password).catch(console.error)) {
-  //   case 0:   
-  //       //TODO: Indicate that the user doesn't exist in the database
-  //       alert("User does not exist.");
-  //       res.redirect('/login');
-  //     break;
-  //   case 1:   
-  //       res.redirect('/home');
-  //     break;
-  //   case 2:   
-  //       //TODO: Indicate that the password was incorrect
-  //       alert("Incorrect password.");
-  //       res.redirect('/login');
-  //     break;  
-  //   default:
-  //     break;
-  //  }
+    result = await mongoLogin(req.body.email).catch(console.error)
+    if (result==null) 
+    {
+      console.log('User does not exist.');
+      res.redirect('/login');
+    }
+    else
+    {
+        bcrypt.compare(req.body.password, result.password, async function (err, bcryptRes){
+        if (bcryptRes) {
+          console.log('Login successful.');
+          res.render('home.ejs')
+        }
+        else {
+          console.log('Incorrect password.');
+          res.redirect('/login');
+        }
+      });
+    }
   })
 
   app.get('/home', checkAuthenticated, (req, res) => {
@@ -99,19 +101,22 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   //   }
   // })
   
-  app.post('/register', async (req, res) => {
+  app.post('/register', checkNotAuthenticated, async (req, res) => {
     try {
       if (req.body.password == req.body.confirm_password) {
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        if (mongoAdd(getDateTime(), req.body.username, req.body.age, req.body.email, hashedPassword).catch(console.error)) {
-        alert("The email already exists.");
-        res.redirect('/register');
+
+        if (await mongoAdd(getDateTime(), req.body.username, req.body.age, req.body.email, hashedPassword).catch(console.error)) {
+          alert("The email already exists.");
+          res.redirect('/register');
         }
         else {
           res.redirect('/login');
+          console.log('Success');
         }
       } else {
-        console.log('User could not be registered.');
+        console.log('Passwords do not match.');
+        res.redirect('/register');
       }
     } catch (error) {
         res.redirect('/register');
@@ -138,7 +143,6 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   }
 
   async function mongoAdd(date, name, age, email, password){
-    let exists = false;
     try {
       await client.connect();
       await createUser(client, {
@@ -149,47 +153,22 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         password: password,
         stress: []
       });
+      return false;
     } catch (e) {
       console.log('Email already registered.');
-      exists = true;
+      return true;
     } finally {
       await client.close();
     }
-    return exists;
   }
 
-  async function waitLogin(password, result){
-    if (result==null) 
-    {
-      console.log('User does not exist.');
-      return 0;
-    }
-    else
-    {
-        bcrypt.compare(password, result.password, async function (err, res){
-        if (res) {
-          console.log('Login successful.');
-          return 1;
-        }
-        else {
-          console.log('Incorrect password.');
-          return 2;
-        }
-      });
-    }
-  }
-
-  async function mongoLogin(email, password){
+  // Wait to get user information
+  async function mongoLogin(email){
     try {
       await client.connect();
-      const result = await getUser(client, email);
-      let i = await waitLogin(password, result)
-      while (i!=undefined) {
-        return i;
-      }
+      return await getUser(client, email);
     } catch (e) {
       console.log('User does not exist.');
-     // return 0;
     } finally {
       await client.close();
     }
