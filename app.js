@@ -12,6 +12,7 @@ const { MongoClient } = require('mongodb');
 let alert = require('alert'); 
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
+const client = new MongoClient(uri);
 
 app.use('/favicon.ico', express.static('Images/favicon.ico'));
 const initializePassport = require('./passport-config')
