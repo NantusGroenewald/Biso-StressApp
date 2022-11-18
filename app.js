@@ -14,7 +14,6 @@ let alert = require('alert');
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri);
 
-app.use('/favicon.ico', express.static('Images/favicon.ico'));
 const initializePassport = require('./passport-config')
 initializePassport(
     passport,
@@ -79,8 +78,20 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     res.render('home.ejs')
   })
 
+  app.get('/activities', (req, res) => {
+    res.render('activities.ejs')
+  })
+
+  app.get('/details', (req, res) => {
+    res.render('details.ejs')
+  })
+  
   app.get('/useraccount', (req, res) => {
     res.render('useraccount.ejs')
+  })
+
+  app.get('/schedule', (req, res) => {
+    res.render('schedule.ejs')
   })
   
   app.get('/register', checkNotAuthenticated, (req, res) => {
