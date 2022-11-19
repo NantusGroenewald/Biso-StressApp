@@ -73,19 +73,30 @@ app.get('/', checkNotAuthenticated, (req, res) => {
       });
     }
   })
+  
+  app.post('/activities/save', checkNotAuthenticated, async (req, res) => {
+    result.activities.normal = req.body.normal;
+    result.activities.medium = req.body.medium;
+    result.activities.high = req.body.high;
+    console.log();
+    console.log();
+    console.log();
+    mongoUpdate();
+    res.redirect('/activities');
+  })
 
   app.get('/home', (req, res) => {
     res.render('home.ejs')
   })
 
   app.get('/activities', (req, res) => {
-    res.render('activities.ejs')
+    res.render('activities.ejs',{result})
   })
 
   app.get('/details', (req, res) => {
     res.render('details.ejs')
   })
-  
+
   app.get('/useraccount', (req, res) => {
     res.render('useraccount.ejs',{result})
   })
@@ -192,6 +203,17 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     }
   }
 
+  async function mongoUpdate() {
+    try {
+      await client.connect();
+      return await updateUser(client);
+    } catch (e) {
+      console.log('Could not update user.');
+    } finally {
+      await client.close();
+    }
+  }
+
   // Method to get the current date and time in the correct format
   function getDateTime(){
     const date = new Date();
@@ -208,6 +230,11 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   // Get user data via email
   async function getUser(client, listingId){
     return await client.db("BISO_DB").collection("EmployeeStress").findOne({_id: listingId});
+  }
+
+  // Update collection of logged in user
+  async function updateUser(client){
+    return await client.db("BISO_DB").collection("EmployeeStress").updateOne({_id: result._id}, {$set: result});
   }
 
   //Run server on port 3000
