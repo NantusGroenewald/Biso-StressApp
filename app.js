@@ -168,7 +168,8 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         name: name,
         age: age,
         password: password,
-        stress: []
+        stress: [{level: '', date: '', heartRate: 0}],
+        activities: {normal: "", medium: "", high: ""}
       });
       return false;
     } catch (e) {
