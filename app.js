@@ -75,14 +75,21 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   })
   
   app.post('/activities/save', checkNotAuthenticated, async (req, res) => {
+    let id = result._id;
     result.activities.normal = req.body.normal;
     result.activities.medium = req.body.medium;
     result.activities.high = req.body.high;
-    console.log();
-    console.log();
-    console.log();
-    mongoUpdate();
+    mongoUpdate(id);
     res.redirect('/activities');
+  })
+
+  app.post('/details/save', checkNotAuthenticated, async (req, res) => {
+    let id = result._id;
+    result.name = req.body.name;
+    result.age = req.body.age;
+    result.department = req.body.department;
+    mongoUpdate(id);
+    res.redirect('/details');
   })
 
   app.get('/home', (req, res) => {
@@ -94,7 +101,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   })
 
   app.get('/details', (req, res) => {
-    res.render('details.ejs')
+    res.render('details.ejs', {result})
   })
 
   app.get('/useraccount', (req, res) => {
@@ -180,7 +187,8 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         age: age,
         password: password,
         stress: [{level: '', date: '', heartRate: 0}],
-        activities: {normal: "", medium: "", high: ""}
+        activities: {normal: "", medium: "", high: ""},
+        department: ""
       });
       return false;
     } catch (e) {
@@ -203,10 +211,10 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     }
   }
 
-  async function mongoUpdate() {
+  async function mongoUpdate(id) {
     try {
       await client.connect();
-      return await updateUser(client);
+      return await updateUser(client, id);
     } catch (e) {
       console.log('Could not update user.');
     } finally {
@@ -233,8 +241,8 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   }
 
   // Update collection of logged in user
-  async function updateUser(client){
-    return await client.db("BISO_DB").collection("EmployeeStress").updateOne({_id: result._id}, {$set: result});
+  async function updateUser(client, id){
+    return await client.db("BISO_DB").collection("EmployeeStress").updateOne({_id: id}, {$set: result});
   }
 
   //Run server on port 3000

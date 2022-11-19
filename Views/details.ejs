@@ -13,28 +13,26 @@
     </header>
     <div class="details-container">
         <div class="login-box">
-            <form>
+            <form action="/details/save" method="post">
                 <div class="user-box">
-                    <input type="text" name="username" id="username">
+                    <input type="text" name="name" id="name" value="<%-result.name%>">
                     <label>Fullname:</label>
                 </div>
                 <div class="user-box">
-                    <input type="text" name="age" id="age">
+                    <input type="text" name="age" id="age" value="<%=result.age%>">
                     <label>Age:</label>
                 </div>
                 <div class="user-box">
-                    <input type="email" name="email" id="email">
-                    <label>Email:</label>
+                    <input type="department" name="department" id="department" value="<%-result.department%>">
+                    <label>Department:</label>
                 </div>
+                <button class="button login" type="submit">Save</button>
             </form>
         </div>
     </div>
-    <div class="topbutton">
-        <div class="button login"><a href="../HTML/useraccount.html">Save</a> </div>
-    </div>
     <nav>
         <div class="nav-item">
-            <a href="//useraccount"><img src="../Images/arrow-back.png" alt="back"></a>
+            <a href="/useraccount"><img src="../Images/arrow-back.png" alt="back"></a>
         </div>
         <div class="nav-item">
             <a href="/home"><img src="../Images/home.png" alt="home"></a>
