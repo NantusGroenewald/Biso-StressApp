@@ -23,6 +23,7 @@ initializePassport(
 
 app.use(express.static(__dirname + '/public')); 
 let users = []; 
+let result;
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -50,7 +51,6 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   //   failureFlash: true
   // }))
 
-  let result;
   app.post('/login', checkNotAuthenticated, async (req, res) => {
     result = await mongoLogin(req.body.email).catch(console.error);
     users = result;
@@ -87,7 +87,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   })
   
   app.get('/useraccount', (req, res) => {
-    res.render('useraccount.ejs')
+    res.render('useraccount.ejs',{result})
   })
 
   app.get('/schedule', (req, res) => {
