@@ -125,6 +125,10 @@ body {
   font-size: 1.5em;
 }
 
+#password::-ms-reveal, #password::-ms-clear{
+  display: none;
+}
+
 .full {
   width: 100%;
   height: 100vh;

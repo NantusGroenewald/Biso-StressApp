@@ -24,6 +24,7 @@ initializePassport(
 
 app.use(express.static(__dirname + '/public')); 
 let users = []; 
+let result;
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -51,7 +52,6 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   //   failureFlash: true
   // }))
 
-  let result;
   app.post('/login', checkNotAuthenticated, async (req, res) => {
     result = await mongoLogin(req.body.email).catch(console.error);
     users = result;
@@ -74,21 +74,39 @@ app.get('/', checkNotAuthenticated, (req, res) => {
       });
     }
   })
+  
+  app.post('/activities/save', checkNotAuthenticated, async (req, res) => {
+    let id = result._id;
+    result.activities.normal = req.body.normal;
+    result.activities.medium = req.body.medium;
+    result.activities.high = req.body.high;
+    mongoUpdate(id);
+    res.redirect('/activities');
+  })
+
+  app.post('/details/save', checkNotAuthenticated, async (req, res) => {
+    let id = result._id;
+    result.name = req.body.name;
+    result.age = req.body.age;
+    result.department = req.body.department;
+    mongoUpdate(id);
+    res.redirect('/details');
+  })
 
   app.get('/home', (req, res) => {
     res.render('home.ejs')
   })
 
   app.get('/activities', (req, res) => {
-    res.render('activities.ejs')
+    res.render('activities.ejs',{result})
   })
 
   app.get('/details', (req, res) => {
-    res.render('details.ejs')
+    res.render('details.ejs', {result})
   })
-  
+
   app.get('/useraccount', (req, res) => {
-    res.render('useraccount.ejs')
+    res.render('useraccount.ejs',{result})
   })
 
   app.get('/schedule', (req, res) => {
@@ -169,7 +187,9 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         name: name,
         age: age,
         password: password,
-        stress: []
+        stress: [{level: '', date: '', heartRate: 0}],
+        activities: {normal: "", medium: "", high: ""},
+        department: ""
       });
       return false;
     } catch (e) {
@@ -192,6 +212,17 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     }
   }
 
+  async function mongoUpdate(id) {
+    try {
+      await client.connect();
+      return await updateUser(client, id);
+    } catch (e) {
+      console.log('Could not update user.');
+    } finally {
+      await client.close();
+    }
+  }
+
   // Method to get the current date and time in the correct format
   function getDateTime(){
     const date = new Date();
@@ -208,6 +239,11 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   // Get user data via email
   async function getUser(client, listingId){
     return await client.db("BISO_DB").collection("EmployeeStress").findOne({_id: listingId});
+  }
+
+  // Update collection of logged in user
+  async function updateUser(client, id){
+    return await client.db("BISO_DB").collection("EmployeeStress").updateOne({_id: id}, {$set: result});
   }
 
   //Run server on port 3000

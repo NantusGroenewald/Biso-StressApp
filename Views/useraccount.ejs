@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../CSS/main.css">
+    <link id="favicon" rel="shortcut icon" type="image/png" href="..\Images\favicon.ico"/>
     <title>Account</title>
 </head>
 <body>
@@ -13,9 +14,9 @@
             <img src="../Images/Profile.jpg" alt="user profile image">
         </div>
         <div class="userdetails">
-            <h2 id="username">John Doe</h2>
-            <p id="useremail">johndoe@gmail.com</p>
-            <a href="../HTML/login.html">Change User</a>
+            <h2 id="username"><%= result.name %></h2>
+            <p id="useremail"><%= result._id %></p>
+            <a href="/login">Change User</a>
         </div>
     </div>
     <div class="edit-details">
@@ -37,7 +38,7 @@
     </div>
     <nav>
         <div class="nav-item">
-            <a href="/"><img src="../Images/arrow-back.png" alt="back"></a>
+            <a href="/home"><img src="../Images/arrow-back.png" alt="back"></a>
         </div>
         <div class="nav-item">
             <a href="/home"><img src="../Images/home.png" alt="home"></a>
