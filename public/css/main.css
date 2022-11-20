@@ -125,6 +125,10 @@ body {
   font-size: 1.5em;
 }
 
+.hide_eye::-ms-reveal, .hide_eye::-ms-clear{
+  display: none;
+}
+
 #password::-ms-reveal, #password::-ms-clear{
   display: none;
 }
