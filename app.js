@@ -9,11 +9,15 @@ const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const { MongoClient } = require('mongodb');
+const fetch = require("node-fetch");
 let alert = require('alert'); 
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
 
 const client = new MongoClient(uri);
+
+//Current date without time
+let currentDate = new Date().toISOString().split('T')[0];
 
 const initializePassport = require('./passport-config')
 initializePassport(
@@ -64,8 +68,16 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     {
         bcrypt.compare(req.body.password, result.password, async function (err, bcryptRes){
         if (bcryptRes) {
-          console.log('Login successful.');
-          res.render('home.ejs');
+
+            await fetch('https://api.fitbit.com/1/user/-/activities/date/'+currentDate+'.json',{
+            method: 'GET',
+            headers: {"Authorization":"Bearer " + result.fitbit.access_token}
+            }).then(response => response.json()).then(json => {
+            console.log(json.summary);
+            });
+
+            console.log('Login successful.');
+            res.render('home.ejs');
         }
         else {
           console.log('Incorrect password.');
@@ -93,8 +105,15 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     res.redirect('/details');
   })
 
-  app.get('/home', (req, res) => {
-    res.render('home.ejs')
+  app.get('/home', async (req, res) => {
+     res.render('home.ejs');
+
+     await fetch('https://api.fitbit.com/1/user/-/activities/date/'+currentDate+'.json',{
+      method: 'GET',
+      headers: {"Authorization":"Bearer " + result.fitbit.access_token}
+      }).then(response => response.json()).then(json => {
+      console.log(json.summary);
+      });
   })
 
   app.get('/activities', (req, res) => {
@@ -189,7 +208,11 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         password: password,
         stress: [{level: '', date: '', heartRate: 0}],
         activities: {normal: "", medium: "", high: ""},
-        department: ""
+        department: "",
+        fitbit: {
+          user_id: "238VFZ",
+          access_token : "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyMzhWRloiLCJzdWIiOiJCOFpOS1YiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd3NvYyB3YWN0IHdveHkgd3RlbSB3d2VpIHdzZXQgd3JlcyB3bG9jIiwiZXhwIjoxNjcxNTQyOTUxLCJpYXQiOjE2Njg5NTA5NTF9.hhUAKIWuDQqcErmpORUR81709FSxtMiqozT_XM694t0"
+        }
       });
       return false;
     } catch (e) {
