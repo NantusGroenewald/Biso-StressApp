@@ -11,6 +11,8 @@ const methodOverride = require('method-override');
 const { MongoClient } = require('mongodb');
 const fetch = require("node-fetch");
 let alert = require('alert'); 
+const { GarminConnect } = require('garmin-connect');
+const GCClient = new GarminConnect();
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
 
@@ -67,17 +69,20 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     else
     {
         bcrypt.compare(req.body.password, result.password, async function (err, bcryptRes){
-        if (bcryptRes) {
+        if (bcryptRes) {       
+          await GCClient.login('r0943545@ucll.be', 'Ivp1234567');
+          console.log(await GCClient.getSocialProfile());
 
-            await fetch('https://api.fitbit.com/1/user/-/activities/date/'+currentDate+'.json',{
-            method: 'GET',
-            headers: {"Authorization":"Bearer " + result.fitbit.access_token}
-            }).then(response => response.json()).then(json => {
-            console.log(json.summary);
-            });
-
-            console.log('Login successful.');
-            res.render('home.ejs');
+         // const userInfo = await GCClient.getUserInfo();
+          //console.log(await GCClient.getUserInfo());
+          //const displayName = userInfo.displayName;
+          // const url = 'https://connect.garmin.com/modern/proxy/wellness-service/wellness/dailyHeartRate/';
+          // const dateString = '2022-11-22';
+          //GCClient.get(url + displayName, { date: dateString });
+          //console.log(await GCClient.getHeartRate(new Date('2022-11-22')));
+          //console.log(await GCClient.get(url + displayName, { date: dateString }))
+          console.log('Login successful.');
+          res.render('home.ejs');
         }
         else {
           console.log('Incorrect password.');
