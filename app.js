@@ -10,9 +10,14 @@ const session = require('express-session');
 const methodOverride = require('method-override');
 const { MongoClient } = require('mongodb');
 const fetch = require("node-fetch");
+const wt = require('worker-thread'); 
 let alert = require('alert'); 
+
+//Garmin
 const { GarminConnect } = require('garmin-connect');
 const GCClient = new GarminConnect();
+
+
 
 const uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.lh84toi.mongodb.net/?retryWrites=true&w=majority";
 
@@ -31,6 +36,14 @@ initializePassport(
 app.use(express.static(__dirname + '/public')); 
 let users = []; 
 let result;
+//Heartrate values 
+var heartRate;
+var restingRate; 
+var heartRateValues; 
+var lastHeartRate;
+var ActivityType; 
+var Activity; 
+var Uservalues = {}; 
 
 app.set('view-engine', 'ejs')
 app.use(express.urlencoded({ extended: false }))
@@ -69,20 +82,9 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     else
     {
         bcrypt.compare(req.body.password, result.password, async function (err, bcryptRes){
-        if (bcryptRes) {       
-          await GCClient.login('r0943545@ucll.be', 'Ivp1234567');
-          console.log(await GCClient.getSocialProfile());
-
-         // const userInfo = await GCClient.getUserInfo();
-          //console.log(await GCClient.getUserInfo());
-          //const displayName = userInfo.displayName;
-          // const url = 'https://connect.garmin.com/modern/proxy/wellness-service/wellness/dailyHeartRate/';
-          // const dateString = '2022-11-22';
-          //GCClient.get(url + displayName, { date: dateString });
-          //console.log(await GCClient.getHeartRate(new Date('2022-11-22')));
-          //console.log(await GCClient.get(url + displayName, { date: dateString }))
+        if (bcryptRes) {      
           console.log('Login successful.');
-          res.render('home.ejs');
+          res.redirect('/home');
         }
         else {
           console.log('Incorrect password.');
@@ -98,7 +100,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     result.activities.medium = req.body.medium;
     result.activities.high = req.body.high;
     mongoUpdate(id);
-    res.redirect('/activities');
+    res.redirect('/useraccount');
   })
 
   app.post('/details/save', checkNotAuthenticated, async (req, res) => {
@@ -107,19 +109,22 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     result.age = req.body.age;
     result.department = req.body.department;
     mongoUpdate(id);
-    res.redirect('/details');
+    res.redirect('/useraccount');
   })
 
   app.get('/home', async (req, res) => {
-     res.render('home.ejs');
-
-     await fetch('https://api.fitbit.com/1/user/-/activities/date/'+currentDate+'.json',{
-      method: 'GET',
-      headers: {"Authorization":"Bearer " + result.fitbit.access_token}
-      }).then(response => response.json()).then(json => {
-      console.log(json.summary);
-      });
-  })
+    const ch = wt.createChannel(worker, 1);
+    ch.on('done', async (err, result) => {
+      if (err) {
+        console.error(err);
+      }
+    });
+    ch.add(1);
+    res.render('home.ejs',{Uservalues});
+    console.log(restingRate);
+    console.log(lastHeartRate);
+    console.log(Uservalues);
+  });
 
   app.get('/activities', (req, res) => {
     res.render('activities.ejs',{result})
@@ -259,6 +264,26 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     return current_date + " " + current_time;	
   }
 
+  //Method to do Activity calculations
+  function ActivityCalc(restingHeartRate, lastHeartRate){
+    if (lastHeartRate >= restingHeartRate + 2 && lastHeartRate < restingHeartRate + 3 ) {
+      ActivityType = "LOW"; 
+      Activity = result.activities.normal; 
+    }
+    else if (lastHeartRate >= restingHeartRate + 3 && lastHeartRate < restingHeartRate + 10){
+      ActivityType = "MEDIUM"; 
+      Activity = result.activities.medium; 
+    } 
+    else if (lastHeartRate >= restingHeartRate + 10){
+      ActivityType = "HIGH"; 
+      Activity = result.activities.high; 
+    }
+    else {
+      ActivityType = "LOW"; 
+      Activity = "Just Breathe";
+    }
+  }
+
   // Add new user to the database
   async function createUser(client, newListing){
     await client.db("BISO_DB").collection("EmployeeStress").insertOne(newListing);
@@ -272,6 +297,21 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   // Update collection of logged in user
   async function updateUser(client, id){
     return await client.db("BISO_DB").collection("EmployeeStress").updateOne({_id: id}, {$set: result});
+  }
+
+  function worker(n) {
+    return new Promise( async r => {
+      await GCClient.login('r0943545@ucll.be', 'Ivp1234567');
+      console.log(currentDate);
+      heartRate = await GCClient.getHeartRate(new Date(currentDate)); 
+      console.log('2 ' + currentDate);
+      restingRate = heartRate["restingHeartRate"]; 
+      heartRateValues = heartRate["heartRateValues"]; 
+      // console.log(heartRateValues);
+      lastHeartRate = heartRateValues[heartRateValues.length-1][1];
+      ActivityCalc(restingRate, lastHeartRate)
+      Uservalues = {lastHeartRate: lastHeartRate,ActivityType: ActivityType ,Activity:Activity };
+    });
   }
 
   //Run server on port 3000

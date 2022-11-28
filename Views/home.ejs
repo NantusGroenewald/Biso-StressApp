@@ -8,15 +8,21 @@
     <link id="favicon" rel="shortcut icon" type="image/png" href="..\Images\favicon.ico"/>
     <title>Home</title>
 </head>
-<body>
+<body onload="timeOut()">
     <div class="stresslevel">
-        <h1>Stress Level</h1>
-        <img src="../Images/Stress Low.png" alt="stress indicator">
-        <h3 id="stress-level">Low</h3>
+        <h1>Heart Rate</h1>
+        <% if (Uservalues.ActivityType == "MEDIUM") { %>
+            <img src="../Images/heart-rateY.png" alt="stress indicator">
+        <%} else if (Uservalues.ActivityType == "HIGH") { %>
+            <img src="../Images/heart-rateR.png" alt="stress indicator">
+        <%} else { %>
+            <img src="../Images/heart-rateG.png" alt="stress indicator">
+        <%}%>
+        <h3 id="heart-rate"><%= Uservalues.lastHeartRate %></h3>
     </div>
     <div class="activity">
         <h2>Activity</h2>
-        <h3 id="current-activity">Just Breath</h3>
+        <h3 id="current-activity"><%= Uservalues.Activity %></h3>
     </div>
     <nav>
         <div class="nav-item">
@@ -30,4 +36,21 @@
         </div>
     </nav>
 </body>
+<script type="text/javascript">
+    
+    function timeOut(){
+        if (localStorage.getItem('first_time') == true){
+            setTimeout(() => {
+                window.location.reload(true);
+                localStorage.setItem('first_time',false);
+            }, 7000);
+        }
+        else{
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 300000);
+        } 
+        
+    }
+</script>
 </html>
