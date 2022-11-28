@@ -39,7 +39,7 @@
 <script type="text/javascript">
     
     function timeOut(){
-        if (localStorage.getItem('first_time') == true){
+        if (localStorage.getItem('first_time').match(true)){
             setTimeout(() => {
                 window.location.reload(true);
                 localStorage.setItem('first_time',false);
