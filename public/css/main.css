@@ -274,4 +274,18 @@ header h1 {
 }
 .details-container .login-box form input {
   margin-bottom: 3rem;
+}
+
+.calender .details-container {
+  padding-bottom: 0;
+}
+.calender .events {
+  color: #365E7D;
+  text-align: center;
+  padding-top: 1rem;
+}
+.calender .events h2 {
+  margin: 0;
+  font-size: 2em;
+  font-weight: 400;
 }/*# sourceMappingURL=main.css.map */

@@ -15,9 +15,6 @@
     </div>
     <div class="bottom">
             <div class="login-box">
-                <% if (messages.error) { %>
-                    <%= messages.error %>
-                    <% } %>
                     <form action="/login" method="POST">
                         <div class="user-box">
                             <input type="text" name="email" id="email">

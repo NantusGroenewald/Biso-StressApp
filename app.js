@@ -11,7 +11,8 @@ const methodOverride = require('method-override');
 const { MongoClient } = require('mongodb');
 const fetch = require("node-fetch");
 const wt = require('worker-thread'); 
-let alert = require('alert'); 
+const calender = require('./google_calender'); 
+
 
 //Garmin
 const { GarminConnect } = require('garmin-connect');
@@ -25,8 +26,15 @@ const client = new MongoClient(uri);
 
 //Current date without time
 let currentDate = new Date().toISOString().split('T')[0];
+//Current date and time 
+let currentDatetime = new Date()
+//Current date time plus time 
+let tomorrow = addDay(new Date(), 1)
+let eventSummary; 
 
-const initializePassport = require('./passport-config')
+const initializePassport = require('./passport-config');
+const { google } = require('googleapis');
+const { analytics } = require('googleapis/build/src/apis/analytics');
 initializePassport(
     passport,
     email => users.find(user => user.email === email),
@@ -35,7 +43,8 @@ initializePassport(
 
 app.use(express.static(__dirname + '/public')); 
 let users = []; 
-let result;
+let result; 
+let events = {summary: 'no events' } 
 //Heartrate values 
 var heartRate;
 var restingRate; 
@@ -65,11 +74,6 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     res.render('userlogin.ejs')
   })
   
-  // app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-  //   successRedirect: '/home',
-  //   failureRedirect: '/login',
-  //   failureFlash: true
-  // }))
 
   app.post('/login', checkNotAuthenticated, async (req, res) => {
     result = await mongoLogin(req.body.email).catch(console.error);
@@ -101,7 +105,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     result.activities.high = req.body.high;
     mongoUpdate(id);
     res.redirect('/useraccount');
-  })
+  });
 
   app.post('/details/save', checkNotAuthenticated, async (req, res) => {
     let id = result._id;
@@ -110,7 +114,37 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     result.department = req.body.department;
     mongoUpdate(id);
     res.redirect('/useraccount');
-  })
+  });
+
+  app.post('/schedule/save', checkNotAuthenticated, async (req, res) => {
+    let summary = req.body.summary;
+    let description = req.body.description;
+    let dateTime = calender.dateTimeForCalander();
+
+    // Event for Google Calendar
+    let event = {
+        'summary': summary,
+        'description': description,
+        'start': {
+            'dateTime': dateTime['start'],
+            'timeZone': 'Asia/Kolkata'
+        },
+        'end': {
+            'dateTime': dateTime['end'],
+            'timeZone': 'Asia/Kolkata'
+        }
+    };
+
+    calender.insertEvent(event)
+        .then((res) => {
+            console.log(res);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+
+    res.redirect('/useraccount');
+  });
 
   app.get('/home', async (req, res) => {
     const ch = wt.createChannel(worker, 1);
@@ -135,36 +169,27 @@ app.get('/', checkNotAuthenticated, (req, res) => {
   })
 
   app.get('/useraccount', (req, res) => {
+    calender.getEvents(currentDatetime, tomorrow)
+        .then((res) => {
+          eventSummary = res[0].summary; 
+          console.log("Event name: " + eventSummary);
+          events = {summary: eventSummary }
+          
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     res.render('useraccount.ejs',{result})
   })
 
-  app.get('/schedule', (req, res) => {
-    res.render('schedule.ejs')
+  app.get('/schedule', (req, res) => { 
+        res.render('schedule.ejs',{events})
   })
   
   app.get('/register', checkNotAuthenticated, (req, res) => {
     res.render('userregister.ejs')
   })
 
-  // app.post('/register', checkNotAuthenticated, async (req, res) => {
-  //   try {
-  //     if (req.body.confirm_password == req.body.password) {
-  //       const hashedPassword = await bcrypt.hash(req.body.password, 10)
-  //       users.push({
-  //         id: Date.now().toString(),
-  //         name: req.body.name,
-  //         email: req.body.email,
-  //         password: hashedPassword,
-  //         stress: []
-  //       })
-  //     } else {
-  //       console.log('User could not be registered.');
-  //     }
-  //     res.redirect('/login')
-  //   } catch {
-  //     res.redirect('/register')
-  //   }
-  // })
   
   app.post('/register', checkNotAuthenticated, async (req, res) => {
     try {
@@ -206,7 +231,7 @@ app.get('/', checkNotAuthenticated, (req, res) => {
     }
     next()
   }
-
+//Add user to mongoDb (garmin details hardcoded)
   async function mongoAdd(date, name, age, email, password){
     try {
       await client.connect();
@@ -219,9 +244,9 @@ app.get('/', checkNotAuthenticated, (req, res) => {
         stress: [{level: '', date: '', heartRate: 0}],
         activities: {normal: "", medium: "", high: ""},
         department: "",
-        fitbit: {
-          user_id: "238VFZ",
-          access_token : "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyMzhWRloiLCJzdWIiOiJCOFpOS1YiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd3BybyB3bnV0IHdzbGUgd3NvYyB3YWN0IHdveHkgd3RlbSB3d2VpIHdzZXQgd3JlcyB3bG9jIiwiZXhwIjoxNjcxNTQyOTUxLCJpYXQiOjE2Njg5NTA5NTF9.hhUAKIWuDQqcErmpORUR81709FSxtMiqozT_XM694t0"
+        garmin: {
+          email: "r0943545@ucll.be",
+          password : "Ivp1234567"
         }
       });
       return false;
@@ -266,15 +291,15 @@ app.get('/', checkNotAuthenticated, (req, res) => {
 
   //Method to do Activity calculations
   function ActivityCalc(restingHeartRate, lastHeartRate){
-    if (lastHeartRate >= restingHeartRate + 2 && lastHeartRate < restingHeartRate + 3 ) {
+    if (lastHeartRate >= restingHeartRate + 20 && lastHeartRate < restingHeartRate + 35 ) {
       ActivityType = "LOW"; 
       Activity = result.activities.normal; 
     }
-    else if (lastHeartRate >= restingHeartRate + 3 && lastHeartRate < restingHeartRate + 10){
+    else if (lastHeartRate >= restingHeartRate + 35 && lastHeartRate < restingHeartRate + 45){
       ActivityType = "MEDIUM"; 
       Activity = result.activities.medium; 
     } 
-    else if (lastHeartRate >= restingHeartRate + 10){
+    else if (lastHeartRate >= restingHeartRate + 45){
       ActivityType = "HIGH"; 
       Activity = result.activities.high; 
     }
@@ -301,17 +326,22 @@ app.get('/', checkNotAuthenticated, (req, res) => {
 
   function worker(n) {
     return new Promise( async r => {
-      await GCClient.login('r0943545@ucll.be', 'Ivp1234567');
+      console.log(result.garmin.email);
+      await GCClient.login(result.garmin.email, result.garmin.password);
       console.log(currentDate);
       heartRate = await GCClient.getHeartRate(new Date(currentDate)); 
-      console.log('2 ' + currentDate);
       restingRate = heartRate["restingHeartRate"]; 
       heartRateValues = heartRate["heartRateValues"]; 
-      // console.log(heartRateValues);
       lastHeartRate = heartRateValues[heartRateValues.length-1][1];
       ActivityCalc(restingRate, lastHeartRate)
       Uservalues = {lastHeartRate: lastHeartRate,ActivityType: ActivityType ,Activity:Activity };
     });
+  }
+
+  function addDay(date, day) {
+    date.setDate(date.getDate() + day);
+  
+    return date;
   }
 
   //Run server on port 3000

@@ -277,13 +277,20 @@ header{
         }
     }
 }
+.calender{
 
-// .calendar-container{
-//     display: flex;
-//     align-items: center;
-//     justify-content: center;
-//     .caledar{
-//         width: 21.875rem;
-//         height: 25rem;
-//     }
-// }
+    .details-container{
+        padding-bottom: 0;
+    }
+    .events{
+        color: #365E7D;
+        text-align: center;
+        padding-top:1rem;
+        h2{
+            margin: 0;
+            font-size: 2em;
+            font-weight: 400;
+        }
+    }
+}
+    
